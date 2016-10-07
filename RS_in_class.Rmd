@@ -1,0 +1,63 @@
+---
+title: "RS_in_class"
+author: "Antonio Skilton, Yinru Gao, Bruno Shilot"
+date: "10/6/2016"
+output: html_document
+---
+```{r,message=FALSE}
+library(dplyr);library(ggplot2);library(tidyr)
+rs <- read.csv("RS.csv")
+```
+
+###Custom mean function that omits NA values.
+```{r setup, include=FALSE}
+m_r <- function(x) {
+      mean(x, na.rm = T)
+}
+```
+
+
+###Custom function to group and summarise data.
+```{r cars}
+sum_cat <- function(data, ...) {
+      data %>%
+            group_by_(...) %>%
+            summarise(Garbage = m_r(Garbage), Recycle = m_r(Recycle), 
+                      Drk_Wtr = m_r(Drk_Wtr), Yrd_Fd_Wst = m_r(Yrd_Fd_Wst), 
+                      Sewer = m_r(Sewer))
+}
+```
+
+###Tables created to plot.
+```{r pressure, echo=FALSE}
+gender <- sum_cat(rs, "Gender")
+race <- sum_cat(rs, "Race")
+caucasian <- sum_cat(rs, "Caucasian")
+age <- sum_cat(rs, "Age_Cat")
+income <- sum_cat(rs, "Inc_Cat")
+own <- sum_cat(rs, "Own_Rent")
+```
+
+###Plot function.
+```{r}
+g_g <- function(tab, tit) {
+      temp <- gather(tab, category, mean, Garbage:Sewer)
+      ggplot(temp, aes(x = category, y = mean, fill = factor(temp[[1]]))) + 
+            geom_bar(stat = "identity", position = "dodge", alpha = 0.75) + 
+            coord_cartesian(ylim = c(0, 4)) +
+            labs(title = paste("Average Index by", tit, sep = " "), 
+                 x = "Index", y = "Mean Index Score") + 
+            scale_fill_discrete(name = tit) 
+}
+```
+
+###Plots!!
+```{r}
+g_g(gender, "Gender")
+g_g(race, "Race")
+g_g(caucasian, "Caucasian versus not")
+g_g(age, "Age Category")
+g_g(income, "Income Category")
+g_g(own, "Own versus Rent")
+```
+
